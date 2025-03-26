@@ -1,0 +1,33 @@
+<!-- <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    
+</body>
+</html> -->
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Assistente de Engenharia</title>
+</head>
+<body>
+    <h1>Assistente de Engenharia</h1>
+    <form method="POST">
+        {% csrf_token %}
+        <label for="user_prompt">Digite seu prompt:</label>
+        <textarea name="user_prompt" id="user_prompt" rows="4" cols="50">{{ prompt }}</textarea><br><br>
+        <button type="submit">Enviar</button>
+    </form>
+
+    {% if answer %}
+    <h2>Resposta:</h2>
+    <p>{{ answer }}</p>
+    {% endif %}
+</body>
+</html>
