@@ -55,7 +55,7 @@ ROOT_URLCONF = 'PGAI.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(BASE_DIR, "PGAI", "templates")],
+        'DIRS': [os.path.join(BASE_DIR, "PGAI", "template")],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
