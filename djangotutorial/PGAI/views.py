@@ -10,11 +10,11 @@ from django.http import HttpResponse
 
 # Carregar variáveis de ambiente
 load_dotenv()
-openai.api_key = os.getenv("API_KEY")
+client = openai.api_key = os.getenv("API_KEY")
 
 # Função para processar o prompt e retornar a resposta
 def get_openai_response(prompt):
-    response = openai.ChatCompletion.create(
+    response = client.chat.completion.create(
         model="gpt-4",
         messages=[
             {"role": "system", "content": '''
@@ -30,7 +30,8 @@ def get_openai_response(prompt):
             {"role": "user", "content": prompt}
         ]
     )
-    return response['choices'][0]['message']['content']
+    # return response.choices[0].message["content"]
+    return response['choices'][0]['message']['content'].strip()
 
 # View para renderizar a página e exibir a resposta
 def index(request):
