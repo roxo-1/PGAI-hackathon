@@ -22,11 +22,19 @@
             justify-content: center;
             align-items: center;
             height: 100vh;
-            background-color: #f4f4f4;
+            background-color: #010338;
+        }
+        .title {
+            font-weight: 900;
+            font-family: Helvetica;
+            font-size: 56px;
+            color: white;
+            display: flex;
+            justify-content: center;
         }
         .chat-container {
-            width: 400px;
-            background: white;
+            width: 90%;
+            height: 100%;
             border-radius: 10px;
             box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
             padding: 20px;
@@ -38,6 +46,13 @@
             padding: 10px;
             background: #eef1f5;
             border-radius: 5px;
+        }
+        .textMessage {
+            background-color: #010338;
+            border: 2px solid #ffffff;
+            border-radius: 20px;
+            padding: 10px;
+            color: #ffffff;
         }
         .user-input {
             display: flex;
@@ -66,15 +81,15 @@
 </head>
 <body>
     <div class="chat-container">
-        <h2>Assistente de Engenharia</h2>
+        <h1 class="title">P G . A I</h1>
         <div class="messages">
             {% if answer %}
-                <p><strong>Assistente:</strong> {{ answer }}</p>
+                <p><strong>PG:</strong> {{ answer }}</p>
             {% endif %}
         </div>
         <form method="POST" class="user-input">
             {% csrf_token %}
-            <textarea name="user_prompt" id="user_prompt" placeholder="Digite sua mensagem...">{{ prompt }}</textarea>
+            <textarea class="textMessage" name="user_prompt" id="user_prompt" placeholder="Digite sua mensagem...">{{ prompt }}</textarea>
             <button type="submit">Enviar</button>
         </form>
     </div>
