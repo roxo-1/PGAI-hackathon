@@ -37,15 +37,14 @@
             height: 100%;
             border-radius: 10px;
             box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
-            padding: 20px;
         }
-        .messages {
-            max-height: 300px;
+        .answer {
+            height: 400px;
             overflow-y: auto;
             margin-bottom: 10px;
             padding: 10px;
-            background: #eef1f5;
             border-radius: 5px;
+            color: #ffffff;
         }
         .textMessage {
             background-color: #010338;
@@ -57,6 +56,10 @@
         .user-input {
             display: flex;
             gap: 10px;
+        }
+        .chatColumn {
+            display: flex;
+            flex-direction: column;
         }
         textarea {
             width: 100%;
@@ -82,16 +85,18 @@
 <body>
     <div class="chat-container">
         <h1 class="title">P G . A I</h1>
-        <div class="messages">
-            {% if answer %}
-                <p><strong>PG:</strong> {{ answer }}</p>
-            {% endif %}
+        <div class="chatColumn">
+            <div class="answer">
+                {% if answer %}
+                    <p><strong>PG:</strong> {{ answer }}</p>
+                {% endif %}
+            </div>
+            <form method="POST" class="user-input">
+                {% csrf_token %}
+                <textarea class="textMessage" name="user_prompt" id="user_prompt" placeholder="Digite sua mensagem...">{{ prompt }}</textarea>
+                <button type="submit">Enviar</button>
+            </form>
         </div>
-        <form method="POST" class="user-input">
-            {% csrf_token %}
-            <textarea class="textMessage" name="user_prompt" id="user_prompt" placeholder="Digite sua mensagem...">{{ prompt }}</textarea>
-            <button type="submit">Enviar</button>
-        </form>
     </div>
 </body>
 </html>

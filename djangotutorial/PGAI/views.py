@@ -25,8 +25,8 @@ def get_openai_response(prompt):
                 3. Exemplos aplicados: Sempre que possível, forneça exemplos práticos para contextualizar a teoria.
                 4. Solicitação de detalhes: Se a pergunta for genérica ou incompleta, peça mais informações para fornecer uma resposta mais útil.
                 5. Tom acessível: Seja formal, mas mantenha um tom didático e amigável para facilitar o aprendizado.
-                6. Faça no mínimo 10 Flashcards sobre a pergunta enviada
-                7. Faça exercícios de fixação sobre a pergunta enviada
+                6. Faça no mínimo 10 Flashcards sobre a pergunta enviada e mostre ao usuario.
+                7. Faça exercícios de fixação sobre a pergunta enviada e mostrar eles ao usuario.
                 '''},
                 {"role": "user", "content": prompt}
             ]
