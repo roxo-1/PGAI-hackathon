@@ -136,7 +136,7 @@
         <div class="chatColumn">
             <div class="answer">
                 {% if answer %}
-                    <p><strong>PG:</strong> {{ answer }}</p>
+                    <p><strong>PG:</strong> {{  answer|safe }}</p>
                 {% endif %}
             </div>
             <form method="POST" class="user-input">

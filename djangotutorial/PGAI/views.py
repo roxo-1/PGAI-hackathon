@@ -12,6 +12,32 @@ client = OpenAI(api_key=OPENAI_API_KEY)
 
 # Funções de homepage e processamento de prompt
 # Função para processar o prompt e retornar a resposta usado na 
+import re
+
+# Função para formatar a resposta antes de enviá-la ao template
+def format_response(response):
+    if not response:
+        return "Nenhuma resposta gerada."
+
+    # Adiciona quebras de linha para melhorar a legibilidade
+    formatted = response.replace("\n", "<br>")
+
+    # Negrito para palavras-chave importantes
+    keywords = ["Definição:", "Exemplo:", "Fórmula:", "Importante:", "Observação:"]
+    for word in keywords:
+        formatted = formatted.replace(word, f"<strong>{word}</strong>")
+
+    # Convertendo listas para HTML (se detectar "- " no início das linhas)
+    formatted = re.sub(r"- (.+)", r"<li>\1</li>", formatted)  
+    formatted = re.sub(r"(<li>.*?</li>)", r"<ul>\1</ul>", formatted)  # Garante que seja uma lista UL
+
+    # Código e fórmulas (se houver trechos dentro de crases ``)
+    formatted = re.sub(r"``(.*?)``", r"<pre><code>\1</code></pre>", formatted)  
+
+    return formatted
+
+
+# Função para obter resposta da OpenAI
 def get_openai_response(prompt):
     try:
         response = client.chat.completions.create(
@@ -30,9 +56,10 @@ def get_openai_response(prompt):
                 {"role": "user", "content": prompt}
             ]
         )
-        return response.choices[0].message.content
+        return format_response(response.choices[0].message.content)  # Formata antes de retornar
     except Exception as e:
         return f"Erro ao processar o prompt: {str(e)}"
+
 
 # View para renderizar a página e exibir a resposta
 def index(request):
@@ -43,8 +70,9 @@ def index(request):
         else:
             answer = "Por favor, forneça um prompt."
         return render(request, "index.html", {'answer': answer, 'prompt': user_prompt})
-    
+
     return render(request, "index.html", {'answer': '', 'prompt': ''})
+
 
 # funçoes para a dela de flash cards
 # Função para processar o prompt e retornar a resposta usado no flashcard
@@ -69,7 +97,7 @@ def get_openai_response_Flashcard(prompt):
                 '''},
                 {"role": "user", "content": prompt}
             ],
-            temperature=0,
+            temperature=0.7,
             frequency_penalty=0,
             presence_penalty=0
         )
@@ -112,27 +140,40 @@ def flashcards(request):
     })
 
 # funçoes para a dela de flash cards
-# Função para processar o prompt e retornar a resposta usado no flashcard
-def get_openai_response_Exercicios(prompt):
+# Função para processar o prompt e retornar a resposta usada no flashcard
+def get_openai_response_exercicios(topic):
     try:
         response = client.chat.completions.create(
             model="gpt-3.5-turbo",
             messages=[
                 {"role": "system", "content": '''
-                Você é um assistente especializado em auxiliar estudantes de engenharia. Seu objetivo é fornecer perguntas de multipla escolha para estudos.
+                Você é um assistente especializado em criar questões de múltipla escolha para estudantes de engenharia.  
+                Seu objetivo é gerar perguntas desafiadoras e didáticas baseadas no tema fornecido pelo usuário.  
 
-                Requisitos para suas respostas:
-                1. Não escreva nada além da pergunta, suas alternativas e suas respostas.
-                2. Clareza e precisão: Use uma linguagem objetiva, evitando ambiguidades.
-                3. Tom acessível: Seja formal, mas mantenha um tom didático e amigável para facilitar o aprendizado.
-                4. Os exercicos são de multipla escolha de 'A', 'B', 'C' e 'D'.
-                5. Separe com # cada vez que você fizer uma alternativa.
-                6. Sempre separe com a pergunta das alternativas com o símbolo $.
-                7. Coloque depois de cada alternativa separado por '|' se ela esta correta ou incorreta.
+                **Instruções:**  
+                - Gere uma pergunta sobre o tema solicitado. 
+                - Escolha a resposta correta aleatoriamente. 
+                - A pergunta deve ser de múltipla escolha com 4 alternativas.  
+                - O formato da resposta deve ser exatamente o seguinte:  
+
+                Pergunta: [texto da pergunta gerada]  
+                $  
+                A) [alternativa 1] | correta/incorreta  
+                #  
+                B) [alternativa 2] | correta/incorreta  
+                #  
+                C) [alternativa 3] | correta/incorreta  
+                #  
+                D) [alternativa 4] | correta/incorreta  
+
+                **Regras:**  
+                - Escolha a resposta correta aleatoriamente.  
+                - As alternativas devem ser plausíveis e desafiadoras.  
+                - Responda apenas no formato acima, sem explicações adicionais.  
                 '''},
-                {"role": "user", "content": prompt}
+                {"role": "user", "content": f"Crie uma pergunta sobre {topic}."}
             ],
-            temperature=0,
+            temperature=1,  # Aumenta a variação das perguntas geradas
             frequency_penalty=0,
             presence_penalty=0
         )
@@ -141,86 +182,39 @@ def get_openai_response_Exercicios(prompt):
         return f"Erro ao processar o prompt: {str(e)}"
 
 
+# Função para processar a requisição no Django
 def exercicios(request):
     if request.method == 'POST':
         user_prompt = request.POST.get('user_prompt', '').strip()
         if user_prompt:
-            answer = get_openai_response_Exercicios(user_prompt)
+            answer = get_openai_response_exercicios(user_prompt)
             
+            # Inicializa os valores padrão
+            question = "Pergunta não encontrada"
+            alternatives_list = ["Alternativa não encontrada"] * 4
+            answers_list = ["Resposta não encontrada"] * 4
+
             # Separa a string usando '$' como delimitador
             if '$' in answer:
-                # Separa a pergunta das alternativas e resposta
-                question, alternative_answer = answer.split('$', 1)  # Divide apenas no primeiro $
+                question, alternative_answer = answer.split('$', 1)  # Divide no primeiro $
                 question = question.strip()
-                alternative_answer = alternative_answer.strip()
+
+                # Separa alternativas e respostas usando '#'
+                alternative_blocks = alternative_answer.split('#')
                 
-                # Vai ter que separar alternativas
-                if '|' in alternative_answer:
-                    alternatives = alternative_answer.split('|')
-                    
-                    # Inicializa listas para alternativas e respostas
-                    alternatives_list = []
-                    answers_list = []
-                    
-                    # Processa cada alternativa
-                    for alt in alternatives:
-                        if '#' in alt:
-                            alternative, answer = alt.split('#', 1)  # Divide apenas no primeiro #
-                            alternative = alternative.strip()
-                            answer = answer.strip()
-                            alternatives_list.append(alternative)
-                            answers_list.append(answer)
-                        else:
-                            # Caso não encontre o separador '#'
-                            alternatives_list.append(alt)
-                            answers_list.append("Resposta não encontrada")
-                    
-                    # Ajusta para garantir que tenhamos 4 alternativas
-                    while len(alternatives_list) < 4:
-                        alternatives_list.append("")
-                        answers_list.append("")
-                    
-                    return render(request, "exercicios.html", {
-                        'question': question,
-                        'altA': alternatives_list[0],
-                        'AnwA': answers_list[0],
-                        'altB': alternatives_list[1],
-                        'AnwB': answers_list[1],
-                        'altC': alternatives_list[2],
-                        'AnwC': answers_list[2],
-                        'altD': alternatives_list[3],
-                        'AnwD': answers_list[3]
-                    })
-                else:
-                    # Caso não encontre o separador '|'
-                    return render(request, "exercicios.html", {
-                        'question': question,
-                        'altA': "Alternativa não encontrada",
-                        'AnwA': "Resposta não encontrada",
-                        'altB': "",
-                        'AnwB': "",
-                        'altC': "",
-                        'AnwC': "",
-                        'altD': "",
-                        'AnwD': ""
-                    })
-            else:
-                # Caso não encontre o separador '$'
-                question = answer
-                alternative_answer = "Resposta não encontrada"
-                return render(request, "exercicios.html", {
-                    'question': question,
-                    'altA': "Alternativa não encontrada",
-                    'AnwA': "Resposta não encontrada",
-                    'altB': "",
-                    'AnwB': "",
-                    'altC': "",
-                    'AnwC': "",
-                    'altD': "",
-                    'AnwD': ""
-                })
-        else:
-            answer = "Por favor, forneça um prompt."
-            return render(request, "exercicios.html", {'answer': answer, 'prompt': user_prompt})
-    
+                if len(alternative_blocks) >= 4:
+                    for i in range(4):
+                        if '|' in alternative_blocks[i]:
+                            alternative, correctness = alternative_blocks[i].split('|', 1)
+                            alternatives_list[i] = alternative.strip()
+                            answers_list[i] = correctness.strip()
+
+            return render(request, "exercicios.html", {
+                'question': question,
+                'altA': alternatives_list[0], 'AnwA': answers_list[0],
+                'altB': alternatives_list[1], 'AnwB': answers_list[1],
+                'altC': alternatives_list[2], 'AnwC': answers_list[2],
+                'altD': alternatives_list[3], 'AnwD': answers_list[3]
+            })
+
     return render(request, "exercicios.html", {'answer': '', 'prompt': ''})

@@ -7,3 +7,13 @@ O objetivo e utilizar modelos de IA através de API para criar planos de estudo 
 A interface de usuário pode ser um utilitário de linha de comando (CLI), Web ou aplicativo móvel (Android, iOS ou ambos).
 
 Diferencial: Implementação eficiente com limite de uso de tokens/processamento para otimizar recursos computacionais.
+
+## Observações
+Para iniciar é necessario criar um ambiente virtual com seguinte comando 
+python -m venv venv
+Depois só baixar os programas no requirements.txt usando o seguinte comando
+pip install -r requirements.txt  
+usar o terminal para ir até a pasta djangotutorial 
+e executar o comando 
+python manage.py runserver
+e clicar no link web que aparece no terminal
